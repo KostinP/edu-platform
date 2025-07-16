@@ -3,6 +3,7 @@ package course
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/kostinp/edu-platform-backend/pkg/db"
 )
 
@@ -10,6 +11,8 @@ type Repository interface {
 	GetAll(ctx context.Context) ([]Course, error)
 	Create(ctx context.Context, c *Course) error
 	GetBySlug(ctx context.Context, slug string) (*Course, error)
+	Update(ctx context.Context, c *Course) error
+	SoftDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type PostgresRepo struct{}
@@ -61,4 +64,24 @@ func (r *PostgresRepo) GetBySlug(ctx context.Context, slug string) (*Course, err
 		return nil, err
 	}
 	return &c, nil
+}
+
+func (r *PostgresRepo) Update(ctx context.Context, c *Course) error {
+	_, err := db.Pool.Exec(ctx, `
+		UPDATE courses SET
+			slug = $1,
+			title = $2,
+			description = $3,
+			updated_at = NOW()
+		WHERE id = $4 AND deleted_at IS NULL
+	`, c.Slug, c.Title, c.Description, c.ID)
+	return err
+}
+
+func (r *PostgresRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := db.Pool.Exec(ctx, `
+		UPDATE courses SET deleted_at = NOW()
+		WHERE id = $1 AND deleted_at IS NULL
+	`, id)
+	return err
 }

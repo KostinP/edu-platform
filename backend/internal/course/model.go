@@ -13,4 +13,6 @@ type Course struct {
 	Description string
 	AuthorID    uuid.UUID
 	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }
