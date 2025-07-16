@@ -1,0 +1,14 @@
+# .air.toml
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Важно: путь к main.go
+  cmd = "go build -o ./tmp/main ./cmd"
+  bin = "tmp/main"
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "vendor"]
+
+[log]
+  time = true
