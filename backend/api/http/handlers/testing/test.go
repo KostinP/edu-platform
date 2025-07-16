@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
-	"github.com/kostinp/edu-platform-backend/internal/session"
-	"github.com/kostinp/edu-platform-backend/internal/test"
+	"github.com/kostinp/edu-platform-backend/internal/testing/session"
+	"github.com/kostinp/edu-platform-backend/internal/testing/test"
 )
 
 type CreateTestRequest struct {

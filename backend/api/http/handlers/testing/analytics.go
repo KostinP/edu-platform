@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/google/uuid"
-	"github.com/kostinp/edu-platform-backend/internal/answer"
+	"github.com/kostinp/edu-platform-backend/internal/testing/answer"
 	"github.com/labstack/echo/v4"
 )
 

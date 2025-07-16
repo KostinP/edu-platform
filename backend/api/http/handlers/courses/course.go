@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kostinp/edu-platform-backend/internal/course"
+	"github.com/kostinp/edu-platform-backend/internal/course/course"
 
 	"github.com/labstack/echo/v4"
 )

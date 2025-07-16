@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kostinp/edu-platform-backend/internal/module"
+	"github.com/kostinp/edu-platform-backend/internal/course/module"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
