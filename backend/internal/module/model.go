@@ -12,6 +12,7 @@ type Module struct {
 	Title       string
 	Description string
 	Ordinal     int
+	AuthorID    uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time

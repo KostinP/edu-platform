@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS user_answers;
+DROP TABLE IF EXISTS test_sessions;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS tests;

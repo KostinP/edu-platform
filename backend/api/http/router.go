@@ -2,9 +2,13 @@ package http
 
 import (
 	"github.com/kostinp/edu-platform-backend/api/http/handlers"
+	"github.com/kostinp/edu-platform-backend/internal/answer"
 	"github.com/kostinp/edu-platform-backend/internal/course"
 	"github.com/kostinp/edu-platform-backend/internal/lesson"
 	"github.com/kostinp/edu-platform-backend/internal/module"
+	"github.com/kostinp/edu-platform-backend/internal/question"
+	"github.com/kostinp/edu-platform-backend/internal/session"
+	"github.com/kostinp/edu-platform-backend/internal/test"
 	"github.com/kostinp/edu-platform-backend/internal/user"
 
 	"github.com/labstack/echo/v4"
@@ -32,6 +36,24 @@ func RegisterRoutes(e *echo.Echo) {
 	e.GET("/modules/:moduleID/lessons", handlers.GetLessonsByModuleIDHandler(lessonRepo))
 	e.PUT("/lessons/:id", handlers.UpdateLessonHandler(lessonRepo))
 	e.DELETE("/lessons/:id", handlers.DeleteLessonHandler(lessonRepo))
+
+	testRepo := test.NewPostgresRepo()
+	e.POST("/tests", handlers.CreateTestHandler(testRepo))
+	e.PATCH("/tests/:id", handlers.UpdateTestHandler(testRepo))
+	e.DELETE("/tests/:id", handlers.DeleteTestHandler(testRepo))
+
+	questionRepo := question.NewPostgresRepo()
+	e.POST("/tests/:id/questions", handlers.CreateQuestionHandler(questionRepo))
+	e.PATCH("/questions/:id", handlers.UpdateQuestionHandler(questionRepo))
+	e.DELETE("/questions/:id", handlers.DeleteQuestionHandler(questionRepo))
+
+	sessionRepo := session.NewPostgresRepo()
+	e.POST("/tests/:id/start", handlers.StartTestHandler(sessionRepo))
+	e.POST("/tests/:id/submit", handlers.SubmitTestHandler(sessionRepo))
+	answerRepo := answer.NewPostgresRepo()
+	e.PATCH("/answers/:id/review", handlers.ReviewAnswerHandler(answerRepo))
+	e.POST("/questions/:id/answer", handlers.SubmitAnswerHandler(answerRepo, questionRepo))
+	e.GET("/sessions/:id/result", handlers.GetSessionResultHandler(sessionRepo, answerRepo, questionRepo))
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(200, "Server is running!")

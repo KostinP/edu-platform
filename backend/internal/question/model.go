@@ -1,4 +1,4 @@
-package lesson
+package question
 
 import (
 	"time"
@@ -6,11 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type Lesson struct {
+type Question struct {
 	ID        uuid.UUID
-	ModuleID  uuid.UUID
+	TestID    uuid.UUID
+	Type      string
 	Title     string
-	Content   string
+	ImageURL  *string
+	Data      []byte // json.RawMessage
+	Feedback  string
+	Score     float64
 	Ordinal   int
 	AuthorID  uuid.UUID
 	CreatedAt time.Time
