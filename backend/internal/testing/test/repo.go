@@ -14,6 +14,7 @@ type Repository interface {
 	Update(ctx context.Context, t *Test) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Test, error)
+	GetByLessonID(ctx context.Context, lessonID uuid.UUID) ([]Test, error)
 }
 
 type PostgresRepo struct{}
@@ -60,4 +61,27 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Test, error)
 		return nil, err
 	}
 	return &t, nil
+}
+
+func (r *PostgresRepo) GetByLessonID(ctx context.Context, lessonID uuid.UUID) ([]Test, error) {
+	rows, err := db.Pool.Query(ctx, `
+		SELECT id, lesson_id, title, time_limit, shuffle, attempts, show_score, show_answer, access_from, access_to, author_id, created_at, updated_at, deleted_at
+		FROM tests
+		WHERE lesson_id = $1 AND deleted_at IS NULL
+	`, lessonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tests []Test
+	for rows.Next() {
+		var t Test
+		err := rows.Scan(&t.ID, &t.LessonID, &t.Title, &t.TimeLimit, &t.Shuffle, &t.Attempts, &t.ShowScore, &t.ShowAnswer, &t.AccessFrom, &t.AccessTo, &t.AuthorID, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
+		if err != nil {
+			return nil, err
+		}
+		tests = append(tests, t)
+	}
+	return tests, nil
 }

@@ -3,6 +3,7 @@ package http
 import (
 	authHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/auth"
 	"github.com/kostinp/edu-platform-backend/internal/auth/user"
+	"github.com/kostinp/edu-platform-backend/internal/progress"
 
 	courseHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/courses"
 	"github.com/kostinp/edu-platform-backend/internal/course/course"
@@ -18,6 +19,11 @@ import (
 	homeworkHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/homework"
 	"github.com/kostinp/edu-platform-backend/internal/homework/homework"
 	"github.com/kostinp/edu-platform-backend/internal/homework/submission"
+
+	groupsHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/groups"
+	"github.com/kostinp/edu-platform-backend/internal/group/group"
+
+	progressHandler "github.com/kostinp/edu-platform-backend/api/http/handlers/progress"
 
 	"github.com/labstack/echo/v4"
 )
@@ -88,12 +94,16 @@ func registerTestingRoutes(e *echo.Echo) {
 }
 
 func registerHomeworkRoutes(e *echo.Echo) {
-	hwRepoInstance := homework.NewRepository()
-	sbRepoInstance := submission.NewRepository()
+	hwRepoInstance := homework.NewPostgresRepo()
+	sbRepoInstance := submission.NewPostgresRepo()
 
 	// Homework routes
 	e.POST("/homeworks", homeworkHandlers.CreateHomeworkHandler(hwRepoInstance))
-	e.GET("/homeworks", homeworkHandlers.ListHomeworksHandler(hwRepoInstance))
+	// e.GET("/homeworks", homeworkHandlers.ListHomeworksHandler(hwRepoInstance))
+	e.GET("/homeworks", homeworkHandlers.FilterHomeworksHandler(hwRepoInstance))
+	e.GET("/users/:id/homeworks", homeworkHandlers.ListHomeworksForUserHandler(hwRepoInstance))
+	e.GET("/users/:id/homeworks/stats", homeworkHandlers.GetHomeworkStatsHandler(hwRepoInstance))
+	e.GET("/authors/:id/homeworks", homeworkHandlers.ListHomeworksByAuthorHandler(hwRepoInstance))
 
 	// Submission routes
 	e.POST("/submissions", homeworkHandlers.SubmitHomeworkHandler(sbRepoInstance))
@@ -102,6 +112,42 @@ func registerHomeworkRoutes(e *echo.Echo) {
 	e.GET("/submissions/:id", homeworkHandlers.GetSubmissionHandler(sbRepoInstance))
 	e.POST("/submissions/:id/peer-review", homeworkHandlers.PeerReviewHandler(sbRepoInstance))
 
+}
+
+func registerGroupRoutes(e *echo.Echo) {
+	grRepoInstance := group.NewRepository()
+
+	// Group routes
+	e.POST("/groups", groupsHandlers.CreateGroupHandler(grRepoInstance))
+	e.POST("/groups/:id/members", groupsHandlers.AddGroupMemberHandler(grRepoInstance))
+	e.GET("/users/:id/groups", groupsHandlers.ListGroupsByUserHandler(grRepoInstance))
+}
+
+func registerProgressRoutes(e *echo.Echo) {
+	// Импортируем репозитории из внутренних пакетов
+	moduleRepo := module.NewPostgresRepo()
+	lessonRepo := lesson.NewPostgresRepo()
+	testRepo := test.NewPostgresRepo()
+	sessionRepo := session.NewPostgresRepo()
+	homeworkRepo := homework.NewPostgresRepo()
+	submissionRepo := submission.NewPostgresRepo()
+
+	// Создаем ProgressRepo с passing score, например 100%
+	passScore := 100.0
+	progressRepo := progress.NewProgressRepo(
+		moduleRepo,
+		lessonRepo,
+		testRepo,
+		sessionRepo,
+		homeworkRepo,
+		submissionRepo,
+		passScore,
+	)
+
+	progressH := progressHandler.NewProgressHandler(progressRepo)
+
+	// Регистрируем роутинг с методом
+	e.GET("/courses/:course_id/progress", progressH.GetCourseProgress)
 }
 
 func registerHealthCheckRoute(e *echo.Echo) {

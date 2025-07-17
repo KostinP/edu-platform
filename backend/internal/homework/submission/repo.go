@@ -17,9 +17,10 @@ type Repository interface {
 	Review(ctx context.Context, id uuid.UUID, reviewText string, score float64) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Submission, error)
 	AddPeerReview(ctx context.Context, id uuid.UUID, peerID uuid.UUID, comment string) error
+	GetByUserAndHomework(ctx context.Context, userID, homeworkID uuid.UUID) (*Submission, error)
 }
 
-func NewRepository() Repository {
+func NewPostgresRepo() Repository {
 	return &PostgresRepo{}
 }
 
@@ -85,4 +86,21 @@ func (r *PostgresRepo) AddPeerReview(ctx context.Context, id uuid.UUID, peerID u
 		WHERE id = $1
 	`, id, peerID.String(), comment)
 	return err
+}
+
+func (r *PostgresRepo) GetByUserAndHomework(ctx context.Context, userID, homeworkID uuid.UUID) (*Submission, error) {
+	row := db.Pool.QueryRow(ctx, `
+		SELECT id, homework_id, user_id, status, answer, file_url, review, score, created_at, updated_at
+		FROM homework_submissions
+		WHERE user_id = $1 AND homework_id = $2
+		ORDER BY created_at DESC
+		LIMIT 1
+	`, userID, homeworkID)
+
+	var s Submission
+	err := row.Scan(&s.ID, &s.HomeworkID, &s.UserID, &s.Status, &s.Answer, &s.FileURL, &s.Review, &s.Score, &s.CreatedAt, &s.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
 }
