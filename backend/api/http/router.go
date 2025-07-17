@@ -25,6 +25,9 @@ import (
 
 	progressHandler "github.com/kostinp/edu-platform-backend/api/http/handlers/progress"
 
+	tagHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/tag"
+	"github.com/kostinp/edu-platform-backend/internal/tag"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -148,6 +151,32 @@ func registerProgressRoutes(e *echo.Echo) {
 
 	// Регистрируем роутинг с методом
 	e.GET("/courses/:course_id/progress", progressH.GetCourseProgress)
+}
+
+func registerTagRoutes(e *echo.Echo) {
+	tagRepo := tag.NewPostgresRepo()
+	tagHandler := tagHandlers.NewHandler(tagRepo)
+
+	// Теги
+	e.POST("/tags", tagHandler.CreateTag)
+	e.GET("/tags", tagHandler.GetAllTags)
+	e.PUT("/tags/:id", tagHandler.UpdateTag)
+	e.DELETE("/tags/:id", tagHandler.DeleteTag)
+
+	// Теги к курсам
+	e.POST("/courses/:course_id/tags/:tag_id", tagHandler.AddTagToCourse)
+	e.DELETE("/courses/:course_id/tags/:tag_id", tagHandler.RemoveTagFromCourse)
+	e.GET("/courses/:course_id/tags", tagHandler.ListTagsByCourse)
+
+	// Аналогично для уроков
+	e.POST("/lessons/:lesson_id/tags/:tag_id", tagHandler.AddTagToLesson)
+	e.DELETE("/lessons/:lesson_id/tags/:tag_id", tagHandler.RemoveTagFromLesson)
+	e.GET("/lessons/:lesson_id/tags", tagHandler.ListTagsByLesson)
+
+	// Аналогично для тестов
+	e.POST("/tests/:test_id/tags/:tag_id", tagHandler.AddTagToTest)
+	e.DELETE("/tests/:test_id/tags/:tag_id", tagHandler.RemoveTagFromTest)
+	e.GET("/tests/:test_id/tags", tagHandler.ListTagsByTest)
 }
 
 func registerHealthCheckRoute(e *echo.Echo) {
