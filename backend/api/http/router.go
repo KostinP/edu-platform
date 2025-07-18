@@ -9,6 +9,7 @@ import (
 	"github.com/kostinp/edu-platform-backend/internal/course/course"
 	"github.com/kostinp/edu-platform-backend/internal/course/lesson"
 	"github.com/kostinp/edu-platform-backend/internal/course/module"
+	"github.com/kostinp/edu-platform-backend/internal/course/prerequisite"
 
 	testingHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/testing"
 	"github.com/kostinp/edu-platform-backend/internal/testing/answer"
@@ -49,6 +50,7 @@ func registerCourseRoutes(e *echo.Echo) {
 	courseRepo := course.NewPostgresRepo()
 	moduleRepo := module.NewPostgresRepo()
 	lessonRepo := lesson.NewPostgresRepo()
+	prerequisiteRepo := prerequisite.NewPostgresRepo()
 
 	// Course routes
 	e.POST("/courses", courseHandlers.CreateCourseHandler(courseRepo))
@@ -68,6 +70,11 @@ func registerCourseRoutes(e *echo.Echo) {
 	e.GET("/modules/:moduleID/lessons", courseHandlers.GetLessonsByModuleIDHandler(lessonRepo))
 	e.PUT("/lessons/:id", courseHandlers.UpdateLessonHandler(lessonRepo))
 	e.DELETE("/lessons/:id", courseHandlers.DeleteLessonHandler(lessonRepo))
+
+	// Course prerequisites
+	e.GET("/courses/:id/prerequisites", courseHandlers.ListCoursePrerequisitesHandler(prerequisiteRepo))
+	e.POST("/courses/:id/prerequisites", courseHandlers.AddCoursePrerequisiteHandler(prerequisiteRepo))
+	e.DELETE("/courses/:id/prerequisites", courseHandlers.RemoveCoursePrerequisiteHandler(prerequisiteRepo))
 }
 
 func registerTestingRoutes(e *echo.Echo) {

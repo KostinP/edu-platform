@@ -32,3 +32,9 @@ CREATE TABLE lessons (
   updated_at TIMESTAMP DEFAULT NOW(),
   deleted_at TIMESTAMP
 );
+
+CREATE TABLE course_prerequisites (
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    prerequisite_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    PRIMARY KEY (course_id, prerequisite_id)
+);

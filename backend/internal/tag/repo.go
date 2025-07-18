@@ -45,7 +45,9 @@ func (r *PostgresRepo) Create(ctx context.Context, tag *Tag) error {
 	tag.ID = uuid.New()
 	tag.CreatedAt = now
 	tag.UpdatedAt = now
-	return db.Pool.QueryRow(ctx, query, tag.ID, tag.Name, tag.AuthorID, tag.CreatedAt, tag.UpdatedAt).Err()
+
+	_, err := db.Pool.Exec(ctx, query, tag.ID, tag.Name, tag.AuthorID, tag.CreatedAt, tag.UpdatedAt)
+	return err
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*Tag, error) {

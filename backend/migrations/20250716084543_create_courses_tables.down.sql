@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS course_prerequisites;
 DROP TABLE IF EXISTS lessons;
 DROP TABLE IF EXISTS modules;
 DROP TABLE IF EXISTS courses;
