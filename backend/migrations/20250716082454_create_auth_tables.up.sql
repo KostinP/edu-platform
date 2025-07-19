@@ -7,5 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
   photo_url TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  deleted_at TIMESTAMP
+  deleted_at TIMESTAMP,
+  email TEXT,
+  subscribe_to_newsletter BOOLEAN DEFAULT FALSE,
+  role TEXT NOT NULL DEFAULT 'unspecified'
 );

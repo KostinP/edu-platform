@@ -12,11 +12,14 @@ import (
 )
 
 type AuthTelegramRequest struct {
-	TelegramID string `json:"telegram_id" validate:"required"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	Username   string `json:"username"`
-	PhotoURL   string `json:"photo_url"`
+	TelegramID string  `json:"telegram_id" validate:"required"`
+	FirstName  string  `json:"first_name"`
+	LastName   string  `json:"last_name"`
+	Username   string  `json:"username"`
+	PhotoURL   string  `json:"photo_url"`
+	Email      *string `json:"email"`
+	Subscribe  bool    `json:"subscribe_to_newsletter"`
+	Role       string  `json:"role" validate:"required"`
 }
 
 func AuthTelegramHandler(repo user.Repository) echo.HandlerFunc {
@@ -36,13 +39,16 @@ func AuthTelegramHandler(repo user.Repository) echo.HandlerFunc {
 		var newUser *user.User
 		if existing == nil {
 			newUser = &user.User{
-				ID:         uuid.New(),
-				TelegramID: req.TelegramID,
-				FirstName:  req.FirstName,
-				LastName:   req.LastName,
-				Username:   req.Username,
-				PhotoURL:   req.PhotoURL,
-				CreatedAt:  time.Now(),
+				ID:                    uuid.New(),
+				TelegramID:            req.TelegramID,
+				FirstName:             req.FirstName,
+				LastName:              req.LastName,
+				Username:              req.Username,
+				PhotoURL:              req.PhotoURL,
+				Email:                 req.Email,
+				SubscribeToNewsletter: req.Subscribe,
+				Role:                  req.Role,
+				CreatedAt:             time.Now(),
 			}
 		} else {
 			newUser = existing
@@ -50,6 +56,10 @@ func AuthTelegramHandler(repo user.Repository) echo.HandlerFunc {
 			newUser.LastName = req.LastName
 			newUser.Username = req.Username
 			newUser.PhotoURL = req.PhotoURL
+			newUser.Email = req.Email
+			newUser.SubscribeToNewsletter = req.Subscribe
+			newUser.Role = req.Role
+
 		}
 
 		if err := repo.CreateOrUpdate(ctx, newUser); err != nil {

@@ -4,3 +4,5 @@ export const COLORS = {
   blue: "var(--cta)",
   violet: "var(--primary)",
 }
+
+export const API_URL = process.env.NEXT_PUBLIC_API_URL!;
