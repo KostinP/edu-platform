@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       - ENV=production
     depends_on:
@@ -18,7 +18,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env
+      - ./frontend/.env
     environment:
       - NODE_ENV=production
     depends_on:
