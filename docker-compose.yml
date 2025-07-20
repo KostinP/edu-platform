@@ -17,7 +17,11 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
     restart: always
+    depends_on:
+      - backend
 
   db:
     image: postgres:15
