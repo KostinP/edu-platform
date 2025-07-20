@@ -24,7 +24,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, t *Test) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO tests (id, title, time_limit, shuffle, attempts, show_score, show_answer, access_from, access_to, created_at, updated_at)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 	`, t.ID, t.Title, t.TimeLimit, t.Shuffle, t.Attempts, t.ShowScore, t.ShowAnswer, t.AccessFrom, t.AccessTo, t.CreatedAt, t.UpdatedAt)
@@ -32,7 +32,7 @@ func (r *PostgresRepo) Create(ctx context.Context, t *Test) error {
 }
 
 func (r *PostgresRepo) Update(ctx context.Context, t *Test) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE tests
 		SET title = $1, time_limit = $2, shuffle = $3, attempts = $4,
 			show_score = $5, show_answer = $6, access_from = $7, access_to = $8, updated_at = $9
@@ -42,14 +42,14 @@ func (r *PostgresRepo) Update(ctx context.Context, t *Test) error {
 }
 
 func (r *PostgresRepo) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE tests SET deleted_at = NOW() WHERE id = $1
 	`, id)
 	return err
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Test, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, title, time_limit, shuffle, attempts, show_score, show_answer, access_from, access_to, created_at, updated_at
 		FROM tests
 		WHERE id = $1 AND deleted_at IS NULL
@@ -64,7 +64,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Test, error)
 }
 
 func (r *PostgresRepo) GetByLessonID(ctx context.Context, lessonID uuid.UUID) ([]Test, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, lesson_id, title, time_limit, shuffle, attempts, show_score, show_answer, access_from, access_to, author_id, created_at, updated_at, deleted_at
 		FROM tests
 		WHERE lesson_id = $1 AND deleted_at IS NULL

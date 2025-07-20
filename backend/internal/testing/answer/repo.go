@@ -21,7 +21,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Submit(ctx context.Context, a *UserAnswer) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO user_answers (id, test_session_id, user_id, question_id, answer, duration_seconds, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW())
 	`, a.ID, a.TestSessionID, a.UserID, a.QuestionID, a.Answer, a.DurationSeconds)
@@ -29,7 +29,7 @@ func (r *PostgresRepo) Submit(ctx context.Context, a *UserAnswer) error {
 }
 
 func (r *PostgresRepo) GetBySession(ctx context.Context, sessionID uuid.UUID) ([]UserAnswer, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, test_session_id, user_id, question_id, answer, duration_seconds, is_checked, created_at
 		FROM user_answers
 		WHERE test_session_id = $1
@@ -52,7 +52,7 @@ func (r *PostgresRepo) GetBySession(ctx context.Context, sessionID uuid.UUID) ([
 }
 
 func (r *PostgresRepo) GetAnswerStats(ctx context.Context, questionID uuid.UUID) (map[string]int, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT answer::TEXT, COUNT(*) FROM user_answers
 		WHERE question_id = $1
 		GROUP BY answer::TEXT
@@ -75,7 +75,7 @@ func (r *PostgresRepo) GetAnswerStats(ctx context.Context, questionID uuid.UUID)
 }
 
 func (r *PostgresRepo) ManualCheck(ctx context.Context, id uuid.UUID, markCorrect bool) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE user_answers
 		SET is_checked = true
 		WHERE id = $1

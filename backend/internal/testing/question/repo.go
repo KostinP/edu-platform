@@ -23,7 +23,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, q *Question) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO questions (id, test_id, type, title, image_url, data, feedback, score, ordinal, created_at, updated_at)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 	`, q.ID, q.TestID, q.Type, q.Title, q.ImageURL, q.Data, q.Feedback, q.Score, q.Ordinal, q.CreatedAt, q.UpdatedAt)
@@ -31,7 +31,7 @@ func (r *PostgresRepo) Create(ctx context.Context, q *Question) error {
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Question, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, test_id, type, title, image_url, data, feedback, score, ordinal, created_at, updated_at, deleted_at
 		FROM questions WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -45,7 +45,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Question, er
 }
 
 func (r *PostgresRepo) GetByTestID(ctx context.Context, testID uuid.UUID) ([]Question, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, test_id, author_id, type, title, image_url, data, feedback, score, ordinal, created_at, updated_at
 		FROM questions WHERE test_id = $1 AND deleted_at IS NULL
 		ORDER BY ordinal
@@ -68,7 +68,7 @@ func (r *PostgresRepo) GetByTestID(ctx context.Context, testID uuid.UUID) ([]Que
 }
 
 func (r *PostgresRepo) Update(ctx context.Context, q *Question) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE questions
 		SET type = $1, title = $2, image_url = $3, data = $4, feedback = $5,
 			score = $6, ordinal = $7, updated_at = $8
@@ -78,7 +78,7 @@ func (r *PostgresRepo) Update(ctx context.Context, q *Question) error {
 }
 
 func (r *PostgresRepo) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE questions SET deleted_at = NOW() WHERE id = $1
 	`, id)
 	return err

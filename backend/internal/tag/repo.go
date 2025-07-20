@@ -46,12 +46,12 @@ func (r *PostgresRepo) Create(ctx context.Context, tag *Tag) error {
 	tag.CreatedAt = now
 	tag.UpdatedAt = now
 
-	_, err := db.Pool.Exec(ctx, query, tag.ID, tag.Name, tag.AuthorID, tag.CreatedAt, tag.UpdatedAt)
+	_, err := db.DB().Exec(ctx, query, tag.ID, tag.Name, tag.AuthorID, tag.CreatedAt, tag.UpdatedAt)
 	return err
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]*Tag, error) {
-	rows, err := db.Pool.Query(ctx, `SELECT id, name, author_id, created_at, updated_at FROM tags WHERE deleted_at IS NULL`)
+	rows, err := db.DB().Query(ctx, `SELECT id, name, author_id, created_at, updated_at FROM tags WHERE deleted_at IS NULL`)
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +70,13 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]*Tag, error) {
 
 func (r *PostgresRepo) Update(ctx context.Context, id uuid.UUID, dto UpdateTagDTO) error {
 	query := `UPDATE tags SET name = $1, updated_at = $2 WHERE id = $3 AND deleted_at IS NULL`
-	_, err := db.Pool.Exec(ctx, query, dto.Name, time.Now(), id)
+	_, err := db.DB().Exec(ctx, query, dto.Name, time.Now(), id)
 	return err
 }
 
 func (r *PostgresRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `UPDATE tags SET deleted_at = $1 WHERE id = $2`
-	_, err := db.Pool.Exec(ctx, query, time.Now(), id)
+	_, err := db.DB().Exec(ctx, query, time.Now(), id)
 	return err
 }
 
@@ -84,13 +84,13 @@ func (r *PostgresRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *PostgresRepo) AddTagToCourse(ctx context.Context, courseID, tagID uuid.UUID) error {
 	query := `INSERT INTO course_tags (course_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
-	_, err := db.Pool.Exec(ctx, query, courseID, tagID)
+	_, err := db.DB().Exec(ctx, query, courseID, tagID)
 	return err
 }
 
 func (r *PostgresRepo) RemoveTagFromCourse(ctx context.Context, courseID, tagID uuid.UUID) error {
 	query := `DELETE FROM course_tags WHERE course_id = $1 AND tag_id = $2`
-	_, err := db.Pool.Exec(ctx, query, courseID, tagID)
+	_, err := db.DB().Exec(ctx, query, courseID, tagID)
 	return err
 }
 
@@ -101,7 +101,7 @@ func (r *PostgresRepo) ListTagsByCourse(ctx context.Context, courseID uuid.UUID)
 		JOIN course_tags ct ON ct.tag_id = t.id
 		WHERE ct.course_id = $1 AND t.deleted_at IS NULL
 	`
-	rows, err := db.Pool.Query(ctx, query, courseID)
+	rows, err := db.DB().Query(ctx, query, courseID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +122,13 @@ func (r *PostgresRepo) ListTagsByCourse(ctx context.Context, courseID uuid.UUID)
 
 func (r *PostgresRepo) AddTagToLesson(ctx context.Context, lessonID, tagID uuid.UUID) error {
 	query := `INSERT INTO lesson_tags (lesson_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
-	_, err := db.Pool.Exec(ctx, query, lessonID, tagID)
+	_, err := db.DB().Exec(ctx, query, lessonID, tagID)
 	return err
 }
 
 func (r *PostgresRepo) RemoveTagFromLesson(ctx context.Context, lessonID, tagID uuid.UUID) error {
 	query := `DELETE FROM lesson_tags WHERE lesson_id = $1 AND tag_id = $2`
-	_, err := db.Pool.Exec(ctx, query, lessonID, tagID)
+	_, err := db.DB().Exec(ctx, query, lessonID, tagID)
 	return err
 }
 
@@ -139,7 +139,7 @@ func (r *PostgresRepo) ListTagsByLesson(ctx context.Context, lessonID uuid.UUID)
 		JOIN lesson_tags lt ON lt.tag_id = t.id
 		WHERE lt.lesson_id = $1 AND t.deleted_at IS NULL
 	`
-	rows, err := db.Pool.Query(ctx, query, lessonID)
+	rows, err := db.DB().Query(ctx, query, lessonID)
 	if err != nil {
 		return nil, err
 	}
@@ -160,13 +160,13 @@ func (r *PostgresRepo) ListTagsByLesson(ctx context.Context, lessonID uuid.UUID)
 
 func (r *PostgresRepo) AddTagToTest(ctx context.Context, testID, tagID uuid.UUID) error {
 	query := `INSERT INTO test_tags (test_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
-	_, err := db.Pool.Exec(ctx, query, testID, tagID)
+	_, err := db.DB().Exec(ctx, query, testID, tagID)
 	return err
 }
 
 func (r *PostgresRepo) RemoveTagFromTest(ctx context.Context, testID, tagID uuid.UUID) error {
 	query := `DELETE FROM test_tags WHERE test_id = $1 AND tag_id = $2`
-	_, err := db.Pool.Exec(ctx, query, testID, tagID)
+	_, err := db.DB().Exec(ctx, query, testID, tagID)
 	return err
 }
 
@@ -177,7 +177,7 @@ func (r *PostgresRepo) ListTagsByTest(ctx context.Context, testID uuid.UUID) ([]
 		JOIN test_tags tt ON tt.tag_id = t.id
 		WHERE tt.test_id = $1 AND t.deleted_at IS NULL
 	`
-	rows, err := db.Pool.Query(ctx, query, testID)
+	rows, err := db.DB().Query(ctx, query, testID)
 	if err != nil {
 		return nil, err
 	}

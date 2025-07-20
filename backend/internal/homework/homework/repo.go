@@ -29,7 +29,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, hw *Homework) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO homeworks
 		(id, title, description, type, course_id, module_id, lesson_id, group_id, user_id, author_id, due_at, is_required, created_at, updated_at)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
@@ -38,7 +38,7 @@ func (r *PostgresRepo) Create(ctx context.Context, hw *Homework) error {
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Homework, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, title, description, type, course_id, module_id, lesson_id, group_id, user_id, author_id, due_at, is_required, created_at, updated_at
 		FROM homeworks WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -49,7 +49,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Homework, er
 }
 
 func (r *PostgresRepo) List(ctx context.Context) ([]Homework, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, title, description, type, course_id, module_id, lesson_id, group_id, user_id, author_id, due_at, is_required, created_at, updated_at
 		FROM homeworks WHERE deleted_at IS NULL
 	`)
@@ -71,7 +71,7 @@ func (r *PostgresRepo) List(ctx context.Context) ([]Homework, error) {
 }
 
 func (r *PostgresRepo) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE homeworks SET deleted_at = NOW() WHERE id = $1
 	`, id)
 	return err
@@ -158,7 +158,7 @@ func (r *PostgresRepo) ListForUserFiltered(ctx context.Context, userID uuid.UUID
 		argIdx++
 	}
 
-	rows, err := db.Pool.Query(ctx, query, args...)
+	rows, err := db.DB().Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (r *PostgresRepo) GetStatsForUser(ctx context.Context, userID uuid.UUID) (m
 		LEFT JOIN group_members gm ON gm.group_id = h.group_id AND gm.user_id = $1
 		WHERE (h.user_id = $1 OR gm.user_id = $1) AND h.deleted_at IS NULL
 	`
-	row := db.Pool.QueryRow(ctx, query, userID)
+	row := db.DB().QueryRow(ctx, query, userID)
 
 	var total, submitted, checked, overdue int
 	if err := row.Scan(&total, &submitted, &checked, &overdue); err != nil {
@@ -208,7 +208,7 @@ func (r *PostgresRepo) GetStatsForUser(ctx context.Context, userID uuid.UUID) (m
 }
 
 func (r *PostgresRepo) ListByAuthor(ctx context.Context, authorID uuid.UUID) ([]Homework, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, title, description, type, course_id, module_id,
 		       lesson_id, group_id, user_id, author_id, due_at,
 		       is_required, created_at, updated_at, deleted_at
@@ -267,7 +267,7 @@ func (r *PostgresRepo) Filter(ctx context.Context, filters map[string]interface{
 
 	baseQuery += fmt.Sprintf(" ORDER BY h.due_at NULLS LAST LIMIT %d OFFSET %d", limit, offset)
 
-	rows, err := db.Pool.Query(ctx, baseQuery, args...)
+	rows, err := db.DB().Query(ctx, baseQuery, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ func (r *PostgresRepo) GetByUserAndStatus(ctx context.Context, userID uuid.UUID,
 		query += " AND s.submitted_at IS NULL"
 	}
 
-	rows, err := db.Pool.Query(ctx, query, userID)
+	rows, err := db.DB().Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (r *PostgresRepo) GetByUserAndStatus(ctx context.Context, userID uuid.UUID,
 }
 
 func (r *PostgresRepo) ListByLesson(ctx context.Context, lessonID uuid.UUID) ([]Homework, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, title, description, type, course_id, module_id, lesson_id, group_id, user_id, author_id, due_at, is_required, created_at, updated_at, deleted_at
 		FROM homeworks
 		WHERE lesson_id = $1 AND deleted_at IS NULL

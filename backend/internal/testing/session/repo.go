@@ -22,7 +22,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Start(ctx context.Context, s *TestSession) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO test_sessions (id, user_id, test_id, started_at, attempts, status, created_at, updated_at)
 		VALUES ($1, $2, $3, NOW(), $4, $5, NOW(), NOW())
 	`, s.ID, s.UserID, s.TestID, s.Attempts, s.Status)
@@ -30,7 +30,7 @@ func (r *PostgresRepo) Start(ctx context.Context, s *TestSession) error {
 }
 
 func (r *PostgresRepo) Finish(ctx context.Context, id uuid.UUID, score float64) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE test_sessions
 		SET score = $1, finished_at = NOW(), status = 'finished', updated_at = NOW()
 		WHERE id = $2
@@ -39,7 +39,7 @@ func (r *PostgresRepo) Finish(ctx context.Context, id uuid.UUID, score float64) 
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*TestSession, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, user_id, test_id, started_at, finished_at, score, attempts, status, created_at, updated_at
 		FROM test_sessions
 		WHERE id = $1
@@ -54,7 +54,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*TestSession,
 }
 
 func (r *PostgresRepo) GetLastFinishedByUserAndTest(ctx context.Context, userID, testID uuid.UUID) (*TestSession, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, user_id, test_id, started_at, finished_at, score, attempts, status, created_at, updated_at
 		FROM test_sessions
 		WHERE user_id = $1 AND test_id = $2 AND status = 'finished'

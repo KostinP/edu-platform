@@ -20,7 +20,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Add(ctx context.Context, courseID, prerequisiteID uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO course_prerequisites (course_id, prerequisite_id)
 		VALUES ($1, $2) ON CONFLICT DO NOTHING
 	`, courseID, prerequisiteID)
@@ -28,7 +28,7 @@ func (r *PostgresRepo) Add(ctx context.Context, courseID, prerequisiteID uuid.UU
 }
 
 func (r *PostgresRepo) Remove(ctx context.Context, courseID, prerequisiteID uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		DELETE FROM course_prerequisites
 		WHERE course_id = $1 AND prerequisite_id = $2
 	`, courseID, prerequisiteID)
@@ -36,7 +36,7 @@ func (r *PostgresRepo) Remove(ctx context.Context, courseID, prerequisiteID uuid
 }
 
 func (r *PostgresRepo) List(ctx context.Context, courseID uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT prerequisite_id FROM course_prerequisites
 		WHERE course_id = $1
 	`, courseID)

@@ -22,7 +22,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, m *Module) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO modules (id, course_id, title, description, ordinal, author_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
 	`, m.ID, m.CourseID, m.Title, m.Description, m.Ordinal, m.AuthorID)
@@ -30,7 +30,7 @@ func (r *PostgresRepo) Create(ctx context.Context, m *Module) error {
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Module, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, course_id, title, description, ordinal, author_id, created_at, updated_at, deleted_at
 		FROM modules
 		WHERE id = $1
@@ -45,7 +45,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Module, erro
 }
 
 func (r *PostgresRepo) GetByCourseID(ctx context.Context, courseID uuid.UUID) ([]Module, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT
 			m.id,
 			m.course_id,
@@ -89,7 +89,7 @@ func (r *PostgresRepo) GetByCourseID(ctx context.Context, courseID uuid.UUID) ([
 }
 
 func (r *PostgresRepo) Update(ctx context.Context, m *Module) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE modules SET
 			title = $1,
 			description = $2,
@@ -101,7 +101,7 @@ func (r *PostgresRepo) Update(ctx context.Context, m *Module) error {
 }
 
 func (r *PostgresRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE modules SET deleted_at = NOW()
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)

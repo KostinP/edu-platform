@@ -25,7 +25,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) Submit(ctx context.Context, s *Submission) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO homework_submissions
 		(id, homework_id, user_id, status, answer, file_url, created_at, updated_at)
 		VALUES ($1,$2,$3,'submitted',$4,$5,$6,$7)
@@ -34,7 +34,7 @@ func (r *PostgresRepo) Submit(ctx context.Context, s *Submission) error {
 }
 
 func (r *PostgresRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]Submission, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, homework_id, user_id, status, answer, file_url, review, score, created_at, updated_at
 		FROM homework_submissions WHERE user_id = $1
 	`, userID)
@@ -56,7 +56,7 @@ func (r *PostgresRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]Subm
 }
 
 func (r *PostgresRepo) Review(ctx context.Context, id uuid.UUID, review string, score float64) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE homework_submissions
 		SET review = $1, score = $2, status = 'reviewed', updated_at = NOW()
 		WHERE id = $3
@@ -65,7 +65,7 @@ func (r *PostgresRepo) Review(ctx context.Context, id uuid.UUID, review string, 
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Submission, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, homework_id, user_id, status, answer, file_url, review, score, created_at, updated_at
 		FROM homework_submissions WHERE id = $1
 	`, id)
@@ -79,7 +79,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Submission, 
 }
 
 func (r *PostgresRepo) AddPeerReview(ctx context.Context, id uuid.UUID, peerID uuid.UUID, comment string) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE homework_submissions
 		SET review = COALESCE(review, '') || E'\n[peer-review ' || $2 || ']: ' || $3,
 		    updated_at = NOW()
@@ -89,7 +89,7 @@ func (r *PostgresRepo) AddPeerReview(ctx context.Context, id uuid.UUID, peerID u
 }
 
 func (r *PostgresRepo) GetByUserAndHomework(ctx context.Context, userID, homeworkID uuid.UUID) (*Submission, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, homework_id, user_id, status, answer, file_url, review, score, created_at, updated_at
 		FROM homework_submissions
 		WHERE user_id = $1 AND homework_id = $2
