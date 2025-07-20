@@ -3,6 +3,17 @@
 
 import { useEffect } from 'react'
 
+interface TelegramUser {
+  id: number
+  first_name: string
+  last_name?: string
+  username?: string
+  photo_url?: string
+  auth_date: number
+  hash: string
+}
+
+
 export default function LoginPage() {
   useEffect(() => {
     const script = document.createElement('script')
@@ -26,7 +37,7 @@ export default function LoginPage() {
 // глобально в window определяем обработчик
 declare global {
   interface Window {
-    onTelegramAuth: (user: any) => void
+    onTelegramAuth: (user: TelegramUser) => void
   }
 }
 

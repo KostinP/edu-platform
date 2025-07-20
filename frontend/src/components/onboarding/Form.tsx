@@ -16,7 +16,12 @@ export default function OnboardingForm() {
   const prev = () => setStep((s) => Math.max(0, s - 1))
 
   const handleSubmit = async () => {
-    await updateUser({ role, email: subscribe ? email : null, subscribed: subscribe })
+    await updateUser({
+        name: 'Имя по умолчанию', // временно
+        role,
+        email: subscribe ? email : undefined,
+        subscribe,
+    })
     window.location.href = '/' // или /dashboard
   }
 

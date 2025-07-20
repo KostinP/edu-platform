@@ -2,20 +2,19 @@
 
 import { useEffect } from 'react'
 
-declare global {
-  interface Window {
-    onTelegramAuth: (user: TelegramUser) => void
-  }
-}
-
 interface TelegramUser {
   id: number
   first_name: string
   last_name?: string
   username?: string
   photo_url?: string
-  auth_date: string
+  auth_date: number
   hash: string
+}
+
+// ✅ Добавим локальное расширение Window:
+interface CustomWindow extends Window {
+  onTelegramAuth: (user: TelegramUser) => void
 }
 
 export default function TelegramLogin() {
@@ -30,8 +29,9 @@ export default function TelegramLogin() {
     script.setAttribute('data-onauth', 'onTelegramAuth(user)')
     document.getElementById('telegram-login-button')?.appendChild(script)
 
-    // Обработчик
-    window.onTelegramAuth = async function (user: TelegramUser) {
+    // ✅ Приводим window к нужному типу
+    const customWindow = window as CustomWindow
+    customWindow.onTelegramAuth = async function (user: TelegramUser) {
       const res = await fetch('/api/auth/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,7 +41,7 @@ export default function TelegramLogin() {
       if (res.ok) {
         const data = await res.json()
         localStorage.setItem('token', data.token)
-        window.location.href = '/' // или router.push('/dashboard')
+        window.location.href = '/'
       } else {
         alert('Ошибка авторизации через Telegram')
       }
