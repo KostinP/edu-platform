@@ -8,7 +8,7 @@
 ssh root@213.139.208.67 << EOF
   cd /srv/edu-platform
   git pull
-  docker-compose down
-  docker-compose build --no-cache
-  docker-compose up -d
+  docker compose down
+  docker compose build --no-cache
+  docker compose up -d
 EOF
