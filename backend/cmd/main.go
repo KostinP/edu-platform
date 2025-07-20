@@ -55,7 +55,7 @@ func main() {
 	defer db.Close()
 
 	// ✅ Автоматическое применение миграций
-	applyMigrations()
+	// applyMigrations()
 
 	e := echo.New()
 

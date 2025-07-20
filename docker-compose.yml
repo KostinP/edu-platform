@@ -35,5 +35,20 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      - db
+    volumes:
+      - ./backend/migrations:/migrations
+    command:
+      [
+        "-path=/migrations",
+        "-database=postgres://postgres:yourpassword@db:5432/edu?sslmode=disable",
+        "up"
+      ]
+    restart: on-failure
+
+
 volumes:
   postgres_data:
