@@ -52,6 +52,10 @@ func main() {
 
 	e := echo.New()
 
+	// Логирование запросов и рековери паники
+	e.Use(middleware.Logger())  // логирует HTTP запросы (метод, путь, статус, время)
+	e.Use(middleware.Recover()) // чтобы сервер не падал на panic
+
 	// CORS
 	frontendOrigin := "http://localhost:3000"
 	if env == "production" {

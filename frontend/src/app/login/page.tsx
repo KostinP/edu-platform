@@ -43,17 +43,28 @@ declare global {
 
 if (typeof window !== 'undefined') {
   window.onTelegramAuth = async (user) => {
-    // Отправляем на backend
+    const payload = {
+      telegram_id: String(user.id),
+      first_name: user.first_name,
+      last_name: user.last_name || '',
+      username: user.username || '',
+      photo_url: user.photo_url || '',
+      email: null, // Telegram не предоставляет email
+      subscribe_to_newsletter: false, // дефолт
+      role: 'student', // по умолчанию, можно кастомизировать
+    }
+
     const res = await fetch('/api/auth/telegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user),
+      body: JSON.stringify(payload),
     })
 
     if (res.ok) {
-      window.location.href = '/' // или куда нужно
+      window.location.href = '/'
     } else {
       alert('Ошибка авторизации')
     }
   }
 }
+
