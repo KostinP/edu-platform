@@ -18,7 +18,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) GetByTelegramID(ctx context.Context, telegramID string) (*User, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, telegram_id, first_name, last_name, username, photo_url, created_at, email, subscribe_to_newsletter, role
 		FROM users
 		WHERE telegram_id = $1
@@ -36,7 +36,7 @@ func (r *PostgresRepo) GetByTelegramID(ctx context.Context, telegramID string) (
 }
 
 func (r *PostgresRepo) CreateOrUpdate(ctx context.Context, u *User) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 	INSERT INTO users (id, telegram_id, first_name, last_name, username, photo_url, created_at, email, subscribe_to_newsletter, role)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	ON CONFLICT (telegram_id) DO UPDATE SET

@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/kostinp/edu-platform-backend/pkg/db"
-
 	"github.com/google/uuid"
+	"github.com/kostinp/edu-platform-backend/pkg/db"
 )
 
 type PostgresRepo struct{}
@@ -23,7 +22,7 @@ func NewRepository() Repository {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, g *Group) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO groups (id, name, description, owner_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`, g.ID, g.Name, g.Description, g.OwnerID, time.Now(), time.Now())
@@ -31,18 +30,21 @@ func (r *PostgresRepo) Create(ctx context.Context, g *Group) error {
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Group, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, name, description, owner_id, created_at, updated_at
 		FROM groups WHERE id = $1
 	`, id)
 
 	var g Group
 	err := row.Scan(&g.ID, &g.Name, &g.Description, &g.OwnerID, &g.CreatedAt, &g.UpdatedAt)
-	return &g, err
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
 }
 
 func (r *PostgresRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]Group, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT g.id, g.name, g.description, g.owner_id, g.created_at, g.updated_at
 		FROM groups g
 		JOIN group_members gm ON gm.group_id = g.id
@@ -56,8 +58,7 @@ func (r *PostgresRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]Grou
 	var result []Group
 	for rows.Next() {
 		var g Group
-		err := rows.Scan(&g.ID, &g.Name, &g.Description, &g.OwnerID, &g.CreatedAt, &g.UpdatedAt)
-		if err != nil {
+		if err := rows.Scan(&g.ID, &g.Name, &g.Description, &g.OwnerID, &g.CreatedAt, &g.UpdatedAt); err != nil {
 			return nil, err
 		}
 		result = append(result, g)
@@ -66,7 +67,7 @@ func (r *PostgresRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]Grou
 }
 
 func (r *PostgresRepo) AddMember(ctx context.Context, groupID, userID uuid.UUID, role string) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO group_members (group_id, user_id, role)
 		VALUES ($1, $2, $3)
 		ON CONFLICT DO NOTHING

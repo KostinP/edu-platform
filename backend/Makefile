@@ -7,10 +7,10 @@ run:
 tidy:
 	go mod tidy
 
-up:
+migrate-up:
 	migrate -path migrations -database "postgres://postgres:yourpassword@localhost:5432/edu?sslmode=disable" up
 
-down:
+migrate-down:
 	migrate -path migrations -database "postgres://postgres:yourpassword@localhost:5432/edu?sslmode=disable" down
 
 migrate-create:

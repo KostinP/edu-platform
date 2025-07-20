@@ -24,7 +24,7 @@ func NewPostgresRepo() Repository {
 }
 
 func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Course, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, slug, title, description, author_id, created_at, updated_at, deleted_at
 		FROM courses
 		WHERE id = $1
@@ -39,7 +39,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Course, erro
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]Course, error) {
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := db.DB().Query(ctx, `
 		SELECT id, slug, title, description, author_id, created_at
 		FROM courses
 		ORDER BY created_at DESC
@@ -61,7 +61,7 @@ func (r *PostgresRepo) GetAll(ctx context.Context) ([]Course, error) {
 }
 
 func (r *PostgresRepo) Create(ctx context.Context, c *Course) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		INSERT INTO courses (id, slug, title, description, author_id, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`, c.ID, c.Slug, c.Title, c.Description, c.AuthorID, c.CreatedAt)
@@ -69,7 +69,7 @@ func (r *PostgresRepo) Create(ctx context.Context, c *Course) error {
 }
 
 func (r *PostgresRepo) GetBySlug(ctx context.Context, slug string) (*Course, error) {
-	row := db.Pool.QueryRow(ctx, `
+	row := db.DB().QueryRow(ctx, `
 		SELECT id, slug, title, description, author_id, created_at
 		FROM courses
 		WHERE slug = $1
@@ -84,7 +84,7 @@ func (r *PostgresRepo) GetBySlug(ctx context.Context, slug string) (*Course, err
 }
 
 func (r *PostgresRepo) Update(ctx context.Context, c *Course) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE courses SET
 			slug = $1,
 			title = $2,
@@ -96,7 +96,7 @@ func (r *PostgresRepo) Update(ctx context.Context, c *Course) error {
 }
 
 func (r *PostgresRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
-	_, err := db.Pool.Exec(ctx, `
+	_, err := db.DB().Exec(ctx, `
 		UPDATE courses SET deleted_at = NOW()
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -120,7 +120,7 @@ func (r *PostgresRepo) GetStats(ctx context.Context, courseID uuid.UUID) (*Stats
 	`
 
 	var s Stats
-	err := db.Pool.QueryRow(ctx, query, courseID).Scan(
+	err := db.DB().QueryRow(ctx, query, courseID).Scan(
 		&s.Rating, &s.LessonsCount, &s.Duration, &s.Students,
 	)
 	if err != nil {

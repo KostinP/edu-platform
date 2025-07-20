@@ -1,25 +1,29 @@
 package main
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/kostinp/edu-platform-backend/api/http/user"
-
 	_ "github.com/kostinp/edu-platform-backend/docs"
-	echoSwagger "github.com/swaggo/echo-swagger"
-
-	nethttp "net/http"
+	"github.com/kostinp/edu-platform-backend/pkg/db"
 
 	httpapi "github.com/kostinp/edu-platform-backend/api/http"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
-
-	"github.com/kostinp/edu-platform-backend/pkg/db"
 )
 
 func main() {
-	_ = godotenv.Load()
+	env := os.Getenv("ENV")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	logrus.Infof("Starting server in %s mode", env)
 
 	if err := db.Connect(); err != nil {
 		logrus.Fatalf("Failed to connect to DB: %v", err)
@@ -27,25 +31,27 @@ func main() {
 
 	e := echo.New()
 
+	// CORS
+	frontendOrigin := "http://localhost:3000"
+	if env == "production" {
+		frontendOrigin = "https://codesigned.ru"
+	}
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods: []string{nethttp.MethodGet, nethttp.MethodPost, nethttp.MethodPut, nethttp.MethodDelete, nethttp.MethodOptions},
+		AllowOrigins: []string{frontendOrigin},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 	}))
 
-	// Swagger UI endpoint
+	// Swagger
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// Health check
+	// Healthcheck
 	e.GET("/", func(c echo.Context) error {
-		return c.String(200, "Server is running!")
+		return c.String(http.StatusOK, "Server is running!")
 	})
 
-	// Регистрируем user маршруты
 	user.RegisterRoutes(e)
-
-	logrus.Info("Server started on http://localhost:8080")
-
 	httpapi.RegisterRoutes(e)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	logrus.Infof("Server listening on :%s", port)
+	e.Logger.Fatal(e.Start(":" + port))
 }
