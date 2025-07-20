@@ -4,11 +4,11 @@
 
 #!/bin/bash
 
-# Установка зависимостей
-npm install
+# # Установка зависимостей
+# npm install
 
-# Сборка фронтенда
-npm run build
+# # Сборка фронтенда
+# npm run build
 
 # # Отправляем исходники на сервер
 # rsync -avz --delete . root@213.139.208.67:/srv/edu-platform/frontend/
