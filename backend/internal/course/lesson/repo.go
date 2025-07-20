@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, l *Lesson) error
+	GetByID(ctx context.Context, id uuid.UUID) (*Lesson, error)
 	GetByModuleID(ctx context.Context, moduleID uuid.UUID) ([]Lesson, error)
 	Update(ctx context.Context, l *Lesson) error
 	SoftDelete(ctx context.Context, id uuid.UUID) error
@@ -50,6 +51,21 @@ func (r *PostgresRepo) GetByModuleID(ctx context.Context, moduleID uuid.UUID) ([
 		lessons = append(lessons, l)
 	}
 	return lessons, nil
+}
+
+func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Lesson, error) {
+	row := db.Pool.QueryRow(ctx, `
+		SELECT id, module_id, title, content, ordinal, author_id, created_at, updated_at, deleted_at
+		FROM lessons
+		WHERE id = $1
+	`, id)
+
+	var l Lesson
+	err := row.Scan(&l.ID, &l.ModuleID, &l.Title, &l.Content, &l.Ordinal, &l.AuthorID, &l.CreatedAt, &l.UpdatedAt, &l.DeletedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &l, nil
 }
 
 func (r *PostgresRepo) Update(ctx context.Context, l *Lesson) error {

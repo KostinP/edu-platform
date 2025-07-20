@@ -1,0 +1,104 @@
+definitions:
+  user.AuthTelegramRequestDTO:
+    properties:
+      email:
+        description: |-
+          Email пользователя
+          example: "user@example.com"
+        type: string
+      first_name:
+        description: |-
+          Имя пользователя
+          example: "Pavel"
+        type: string
+      last_name:
+        description: |-
+          Фамилия пользователя
+          example: "Kostin"
+        type: string
+      photo_url:
+        description: |-
+          URL фото пользователя
+          example: "https://t.me/photo.jpg"
+        type: string
+      role:
+        description: |-
+          Роль пользователя (например, "student")
+          required: true
+          example: "student"
+        type: string
+      subscribe_to_newsletter:
+        description: |-
+          Подписка на рассылку
+          example: true
+        type: boolean
+      telegram_id:
+        description: |-
+          Telegram ID пользователя
+          required: true
+          example: "123456789"
+        type: string
+      username:
+        description: |-
+          Логин пользователя в Telegram
+          example: "kostinp"
+        type: string
+    required:
+    - role
+    - telegram_id
+    type: object
+  user.AuthTelegramResponseDTO:
+    properties:
+      status:
+        description: |-
+          Статус ответа
+          example: "ok"
+        type: string
+      user_id:
+        description: |-
+          ID пользователя
+          example: "e7bfc72d-34cf-4d92-8de1-f349ae5f0370"
+        type: string
+    type: object
+  user.ErrorResponseDTO:
+    properties:
+      error:
+        description: |-
+          Сообщение об ошибке
+          example: "invalid request"
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/telegram:
+    post:
+      consumes:
+      - application/json
+      description: Авторизация или обновление пользователя через Telegram ID
+      parameters:
+      - description: Параметры авторизации через Telegram
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.AuthTelegramRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.AuthTelegramResponseDTO'
+        "400":
+          description: invalid request
+          schema:
+            $ref: '#/definitions/user.ErrorResponseDTO'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/user.ErrorResponseDTO'
+      summary: Авторизация через Telegram
+      tags:
+      - auth
+swagger: "2.0"

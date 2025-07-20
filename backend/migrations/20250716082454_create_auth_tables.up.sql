@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
   id UUID PRIMARY KEY,
   telegram_id TEXT NOT NULL UNIQUE,
   first_name TEXT,

@@ -1,6 +1,11 @@
 package main
 
 import (
+	"github.com/kostinp/edu-platform-backend/api/http/user"
+
+	_ "github.com/kostinp/edu-platform-backend/docs"
+	echoSwagger "github.com/swaggo/echo-swagger"
+
 	nethttp "net/http"
 
 	httpapi "github.com/kostinp/edu-platform-backend/api/http"
@@ -27,9 +32,16 @@ func main() {
 		AllowMethods: []string{nethttp.MethodGet, nethttp.MethodPost, nethttp.MethodPut, nethttp.MethodDelete, nethttp.MethodOptions},
 	}))
 
+	// Swagger UI endpoint
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	// Health check
 	e.GET("/", func(c echo.Context) error {
 		return c.String(200, "Server is running!")
 	})
+
+	// Регистрируем user маршруты
+	user.RegisterRoutes(e)
 
 	logrus.Info("Server started on http://localhost:8080")
 

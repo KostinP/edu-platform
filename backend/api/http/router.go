@@ -1,8 +1,6 @@
 package http
 
 import (
-	authHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/auth"
-	"github.com/kostinp/edu-platform-backend/internal/auth/user"
 	"github.com/kostinp/edu-platform-backend/internal/progress"
 
 	courseHandlers "github.com/kostinp/edu-platform-backend/api/http/handlers/courses"
@@ -34,16 +32,10 @@ import (
 
 // RegisterRoutes регистрирует все маршруты приложения
 func RegisterRoutes(e *echo.Echo) {
-	registerAuthRoutes(e)
 	registerCourseRoutes(e)
 	registerTestingRoutes(e)
 	registerHomeworkRoutes(e)
 	registerHealthCheckRoute(e)
-}
-
-func registerAuthRoutes(e *echo.Echo) {
-	userRepo := user.NewPostgresRepo()
-	e.POST("/auth/telegram", authHandlers.AuthTelegramHandler(userRepo))
 }
 
 func registerCourseRoutes(e *echo.Echo) {

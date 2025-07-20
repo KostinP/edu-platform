@@ -12,6 +12,7 @@ type Module struct {
 	Title       string
 	Description string
 	Ordinal     int
+	Duration    int // длительность в минутах
 	AuthorID    uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

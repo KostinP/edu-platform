@@ -8,7 +8,9 @@ import (
 )
 
 type Repository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*Course, error)
 	GetAll(ctx context.Context) ([]Course, error)
+	GetStats(ctx context.Context, courseID uuid.UUID) (*Stats, error)
 	Create(ctx context.Context, c *Course) error
 	GetBySlug(ctx context.Context, slug string) (*Course, error)
 	Update(ctx context.Context, c *Course) error
@@ -19,6 +21,21 @@ type PostgresRepo struct{}
 
 func NewPostgresRepo() Repository {
 	return &PostgresRepo{}
+}
+
+func (r *PostgresRepo) GetByID(ctx context.Context, id uuid.UUID) (*Course, error) {
+	row := db.Pool.QueryRow(ctx, `
+		SELECT id, slug, title, description, author_id, created_at, updated_at, deleted_at
+		FROM courses
+		WHERE id = $1
+	`, id)
+
+	var c Course
+	err := row.Scan(&c.ID, &c.Slug, &c.Title, &c.Description, &c.AuthorID, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 func (r *PostgresRepo) GetAll(ctx context.Context) ([]Course, error) {
@@ -84,4 +101,30 @@ func (r *PostgresRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
 	return err
+}
+
+func (r *PostgresRepo) GetStats(ctx context.Context, courseID uuid.UUID) (*Stats, error) {
+	query := `
+		SELECT
+			COALESCE(AVG(r.rating), 0) as rating,
+			(SELECT COUNT(*) FROM lessons l
+				JOIN modules m ON l.module_id = m.id
+				WHERE m.course_id = $1) as lessons_count,
+			(SELECT COALESCE(SUM(l.duration), 0) FROM lessons l
+				JOIN modules m ON l.module_id = m.id
+				WHERE m.course_id = $1) as total_duration,
+			(SELECT COUNT(DISTINCT e.user_id) FROM enrollments e
+				WHERE e.course_id = $1) as students
+		FROM course_reviews r
+		WHERE r.course_id = $1
+	`
+
+	var s Stats
+	err := db.Pool.QueryRow(ctx, query, courseID).Scan(
+		&s.Rating, &s.LessonsCount, &s.Duration, &s.Students,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
 }
